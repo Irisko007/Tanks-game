@@ -1,0 +1,4 @@
+[gd_resource type="BoxShape3D" load_steps=2 format=3 uid="uid://box_floor"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(60, 1, 60)
