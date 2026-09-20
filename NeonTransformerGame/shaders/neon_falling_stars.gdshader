@@ -1,49 +1,40 @@
-shader_type spatial;
-render_mode unshaded, depth_draw_never, cull_disabled, blend_add;
+shader_type canvas_item;
 
-uniform vec4 albedo : source_color = vec4(1.0, 0.8, 1.0, 1.0);
-uniform float emission_strength : hint_range(0.0, 10.0) = 5.0;
-uniform float star_size : hint_range(0.0, 2.0) = 0.5;
-uniform float speed : hint_range(0.0, 10.0) = 2.0;
-uniform float trail_length : hint_range(0.0, 5.0) = 3.0;
-
-varying float v_alpha;
-varying vec3 v_velocity;
-
-void vertex() {
-    // Animate stars falling
-    float time = TIME * speed;
-    vec3 pos = VERTEX;
-    
-    // Make stars fall downward
-    pos.y -= mod(time + INSTANCE_CUSTOM.x * 10.0, 20.0);
-    
-    // Add some horizontal drift
-    pos.x += sin(time * 0.5 + INSTANCE_CUSTOM.y) * 0.5;
-    
-    VERTEX = pos;
-    
-    // Calculate velocity for trail effect
-    v_velocity = vec3(0.0, -speed, 0.0);
-}
+uniform vec4 color : source_color = vec4(0.5, 0.0, 1.0, 1.0);
+uniform float speed : hint_range(0.1, 5.0) = 1.0;
+uniform float star_size : hint_range(0.1, 5.0) = 2.0;
+uniform int star_count : hint_range(10, 500) = 100;
 
 void fragment() {
-    vec3 color = albedo.rgb * emission_strength;
+    vec2 uv = UV;
+    vec4 base = texture(SCREEN_TEXTURE, uv);
     
-    // Create star core with glow
-    vec2 uv = UV * 2.0 - 1.0;
-    float dist = length(uv);
+    float time = TIME * speed;
+    vec3 final_color = base.rgb;
     
-    // Star center
-    float star = smoothstep(star_size, 0.0, dist);
+    for (int i = 0; i < 20; i++) {
+        float seed = float(i) * 127.1;
+        vec2 star_pos = vec2(
+            fract(sin(seed) * 43758.5453) * 2.0 - 1.0,
+            fract(cos(seed * 1.3) * 43758.5453)
+        );
+        
+        star_pos.y -= time * 0.1;
+        if (star_pos.y < -1.0) {
+            star_pos.y += 2.0;
+        }
+        
+        float dist = distance(uv * 2.0 - 1.0, star_pos);
+        float star = smoothcast(star_size * 0.01, 0.0, dist);
+        
+        vec3 star_color = mix(
+            vec3(1.0, 0.0, 1.0),
+            vec3(0.0, 1.0, 1.0),
+            sin(time + float(i)) * 0.5 + 0.5
+        );
+        
+        final_color += star_color * star * 0.8;
+    }
     
-    // Trail effect
-    float trail = smoothstep(trail_length, 0.0, dist + dot(uv, normalize(v_velocity.xy)) * 0.5);
-    
-    v_alpha = max(star, trail * 0.3);
-    
-    // Neon glow colors
-    vec3 neon_color = mix(vec3(1.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), sin(TIME + UV.x * 10.0));
-    
-    COLOR = vec4(color * neon_color, v_alpha * albedo.a);
+    COLOR = vec4(final_color, 1.0);
 }

@@ -1,20 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
-  <defs>
-    <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ff00ff;stop-opacity:1" />
-      <stop offset="50%" style="stop-color:#00ffff;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
-    </linearGradient>
-    <filter id="neonGlow">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
   <rect width="128" height="128" fill="#0a0a1a"/>
-  <circle cx="64" cy="64" r="50" fill="none" stroke="url(#neonGradient)" stroke-width="4" filter="url(#neonGlow)"/>
-  <polygon points="64,30 80,70 64,60 48,70" fill="url(#neonGradient)" filter="url(#neonGlow)"/>
-  <text x="64" y="95" font-family="Arial" font-size="20" font-weight="bold" fill="#00ffff" text-anchor="middle" filter="url(#neonGlow)">NT</text>
+  <circle cx="64" cy="64" r="50" fill="none" stroke="#ff00ff" stroke-width="3"/>
+  <circle cx="64" cy="64" r="40" fill="none" stroke="#00ffff" stroke-width="2"/>
+  <polygon points="64,30 80,60 64,90 48,60" fill="#ff0066" opacity="0.8"/>
+  <rect x="58" y="50" width="12" height="30" fill="#00ffff" opacity="0.9"/>
+  <line x1="64" y1="14" x2="64" y2="30" stroke="#ff00ff" stroke-width="2"/>
+  <line x1="64" y1="90" x2="64" y2="114" stroke="#00ffff" stroke-width="2"/>
+  <circle cx="64" cy="64" r="10" fill="#ffffff" opacity="0.5"/>
 </svg>
