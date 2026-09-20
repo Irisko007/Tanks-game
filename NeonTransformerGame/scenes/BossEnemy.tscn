@@ -1,0 +1,42 @@
+[gd_scene load_steps=6 format=3 uid="uid://boss_scene"]
+
+[ext_resource type="Script" path="res://scripts/boss_enemy.gd" id="1_boss_script"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_boss"]
+radius = 2.0
+height = 6.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_boss_body"]
+size = Vector3(4, 5, 3)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_detection"]
+radius = 30.0
+
+[node name="BossEnemy" type="CharacterBody3D"]
+collision_layer = 4
+collision_mask = 3
+script = ExtResource("1_boss_script")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_boss_body")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_boss")
+
+[node name="DetectionArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="DetectionArea"]
+shape = SubResource("SphereShape3D_detection")
+
+[node name="AttackArea" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="AttackArea"]
+shape = SubResource("SphereShape3D_attack")
+
+[node name="ShootPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -2)
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
+radius = 5.0

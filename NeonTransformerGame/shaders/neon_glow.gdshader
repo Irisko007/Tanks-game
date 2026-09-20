@@ -1,27 +1,26 @@
 shader_type spatial;
-render_mode unshaded, blend_add, cull_disabled;
+render_mode unshaded, world_vertex_coords;
 
-uniform vec4 albedo : source_color = vec4(0.0, 1.0, 1.0, 1.0);
-uniform float emission_strength : hint_range(0.0, 10.0) = 8.0;
-uniform float pulse_speed : hint_range(0.0, 5.0) = 2.0;
-uniform float pulse_intensity : hint_range(0.0, 2.0) = 0.5;
+uniform vec4 color : source_color = vec4(1.0, 0.0, 1.0, 1.0);
+uniform float speed : hint_range(0.1, 5.0) = 1.0;
+uniform float glow_intensity : hint_range(0.0, 5.0) = 2.0;
+
+varying float v_alpha;
+varying vec3 v_world_pos;
+
+void vertex() {
+    v_world_pos = (world_matrix * vec4(VERTEX, 1.0)).xyz;
+}
 
 void fragment() {
-    // Pulsing neon effect
-    float pulse = sin(TIME * pulse_speed) * 0.5 + 0.5;
-    vec3 base_color = albedo.rgb;
+    float time = TIME * speed;
+    vec3 view_dir = normalize(camera_position - v_world_pos);
+    float fresnel = pow(1.0 - abs(dot(view_dir, NORMAL)), 3.0);
     
-    // Create gradient from cyan to magenta
-    vec3 neon_gradient = mix(vec3(0.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), UV.x);
+    float pulse = sin(time * 3.0) * 0.5 + 0.5;
+    vec3 neon_color = color.rgb * (1.0 + pulse * glow_intensity);
     
-    // Add pulse to emission
-    float final_emission = emission_strength * (1.0 + pulse * pulse_intensity);
-    
-    // Fresnel-like edge glow
-    float fresnel = dot(NORMAL, VIEW);
-    fresnel = pow(1.0 - abs(fresnel), 3.0);
-    
-    vec3 final_color = neon_gradient * final_emission + base_color * fresnel;
-    
-    COLOR = vec4(final_color, albedo.a);
+    float alpha = color.a * (0.7 + fresnel * 0.3);
+    ALPHA = alpha;
+    EMISSION = neon_color * glow_intensity;
 }

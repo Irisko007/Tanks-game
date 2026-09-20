@@ -1,0 +1,73 @@
+[gd_scene load_steps=8 format=3 uid="uid://player_scene"]
+
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_player_script"]
+[ext_resource type="Shader" path="res://shaders/neon_glow.gdshader" id="2_neon_shader"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_car"]
+radius = 0.8
+height = 2.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_robot"]
+radius = 0.75
+height = 3.0
+
+[sub_resource type="BoxMesh" id="BoxMesh_car_body"]
+size = Vector3(2, 1, 4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_robot_body"]
+size = Vector3(1.5, 2, 1)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_engine"]
+direction = Vector3(0, -1, 0)
+spread = 30.0
+initial_velocity_min = 8.0
+initial_velocity_max = 15.0
+gravity = Vector3(0, -5, 0)
+scale_min = 0.3
+scale_max = 0.8
+color_min = Color(0.0, 1.0, 1.0, 1.0)
+color_max = Color(0.0, 0.5, 1.0, 0.0)
+emission_shape = 2
+emission_box_extents = Vector3(0.5, 0.1, 0.5)
+
+[node name="Player" type="CharacterBody3D"]
+collision_layer = 2
+collision_mask = 1
+script = ExtResource("1_player_script")
+
+[node name="CarForm" type="Node3D" parent="."]
+
+[node name="CarMesh" type="MeshInstance3D" parent="CarForm"]
+mesh = SubResource("BoxMesh_car_body")
+
+[node name="CarCollision" type="CollisionShape3D" parent="CarForm"]
+shape = SubResource("CapsuleShape3D_car")
+
+[node name="RobotForm" type="Node3D" parent="."]
+visible = false
+
+[node name="RobotMesh" type="MeshInstance3D" parent="RobotForm"]
+mesh = SubResource("BoxMesh_robot_body")
+
+[node name="RobotCollision" type="CollisionShape3D" parent="RobotForm"]
+shape = SubResource("CapsuleShape3D_robot")
+
+[node name="EngineParticles" type="GPUParticles3D" parent="RobotForm"]
+amount = 30
+lifetime = 0.8
+process_material = SubResource("ParticleProcessMaterial_engine")
+draw_pass_1 = SubResource("QuadMesh_star")
+
+[node name="CameraPivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 12)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot"]
+current = true
+fov = 75.0
+far = 200.0
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+target_position = Vector3(0, -5, 0)
+collision_mask = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
