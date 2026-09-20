@@ -1,0 +1,27 @@
+```
+# Godot-specific ignores
+*.import
+*.uid
+export_presets.cfg
+.rsync-filter
+.user
+*.autosave
+
+# Build artifacts
+.ninja_log
+build/
+dist/
+
+# Dependencies
+.addons/
+.cache/
+
+# Logs and temp files
+*.log
+*.tmp
+*.backup
+
+# System files
+.DS_Store
+Thumbs.db
+```

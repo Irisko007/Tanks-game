@@ -1,0 +1,389 @@
+[gd_scene load_steps=30 format=3 uid="uid://main_scene"]
+
+[ext_resource type="Script" path="res://scripts/game_manager.gd" id="1_game_manager"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_player"]
+[ext_resource type="Script" path="res://scripts/boss_enemy.gd" id="3_boss"]
+[ext_resource type="Script" path="res://scripts/minion_enemy.gd" id="4_minion"]
+[ext_resource type="Shader" path="res://shaders/neon_falling_stars.gdshader" id="5_stars_shader"]
+[ext_resource type="Shader" path="res://shaders/neon_glow.gdshader" id="6_glow_shader"]
+
+[sub_resource type="WorldEnvironment" id="WorldEnvironment_main"]
+ambient_energy = 0.2
+ambient_source_color = Color(0.1, 0.05, 0.2, 1)
+background_mode = 1
+glow_enabled = true
+glow_levels = Array[int](0, 1, 2, 3, 4, 5, 6)
+glow_intensity = 1.5
+glow_bloom = 0.8
+ssao_enabled = true
+ssao_radius = 1.0
+ssil_enabled = true
+ssil_quality = 2
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_neon"]
+sky_top_color = Color(0.05, 0.0, 0.15, 1)
+sky_horizon_color = Color(0.2, 0.0, 0.3, 1)
+ground_bottom_color = Color(0.02, 0.0, 0.05, 1)
+ground_horizon_color = Color(0.1, 0.0, 0.2, 1)
+sun_angle_degrees = 45
+sun_color = Color(1.0, 0.0, 1.0, 1)
+cloud_enabled = false
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_arena"]
+size = Vector2(120, 120)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+size = Vector3(100, 10, 1)
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_player"]
+radius = 0.75
+height = 3.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_detection"]
+radius = 60.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_attack"]
+radius = 5.0
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_stars"]
+direction = Vector3(0, -1, 0)
+spread = 45.0
+initial_velocity_min = 5.0
+initial_velocity_max = 15.0
+gravity = Vector3(0, -2, 0)
+scale_min = 0.2
+scale_max = 0.5
+color_min = Color(1.0, 0.0, 1.0, 1.0)
+color_max = Color(0.0, 1.0, 1.0, 1.0)
+
+[sub_resource type="QuadMesh" id="QuadMesh_star"]
+size = Vector2(1, 1)
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_game_manager")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("WorldEnvironment_main")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866, -0.433, 0.25, 0, 0.5, 0.866, -0.5, -0.75, 0.433, 0, 10, 5)
+light_energy = 0.5
+light_color = Color(0.8, 0.6, 1.0, 1)
+shadow_enabled = true
+shadow_max_distance = 100
+
+[node name="Arena" type="Node3D" parent="."]
+
+[node name="Floor" type="StaticBody3D" parent="Arena"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+collision_layer = 1
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Arena/Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Arena/Floor"]
+mesh = SubResource("PlaneMesh_arena")
+
+[node name="PantheonColumns" type="Node3D" parent="Arena"]
+
+[node name="Column1" type="StaticBody3D" parent="Arena/PantheonColumns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -15)
+
+[node name="CSGColumn1" type="CSGCylinder3D" parent="Arena/PantheonColumns/Column1"]
+radius = 1.5
+height = 12
+sides = 16
+
+[node name="Column2" type="StaticBody3D" parent="Arena/PantheonColumns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -15)
+
+[node name="CSGColumn2" type="CSGCylinder3D" parent="Arena/PantheonColumns/Column2"]
+radius = 1.5
+height = 12
+sides = 16
+
+[node name="Column3" type="StaticBody3D" parent="Arena/PantheonColumns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 15)
+
+[node name="CSGColumn3" type="CSGCylinder3D" parent="Arena/PantheonColumns/Column3"]
+radius = 1.5
+height = 12
+sides = 16
+
+[node name="Column4" type="StaticBody3D" parent="Arena/PantheonColumns"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 15)
+
+[node name="CSGColumn4" type="CSGCylinder3D" parent="Arena/PantheonColumns/Column4"]
+radius = 1.5
+height = 12
+sides = 16
+
+[node name="NeonBoundary" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+
+[node name="BoundaryWalls" type="Node3D" parent="NeonBoundary"]
+
+[node name="WallNorth" type="Area3D" parent="NeonBoundary/BoundaryWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -50)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NeonBoundary/BoundaryWalls/WallNorth"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="WallSouth" type="Area3D" parent="NeonBoundary/BoundaryWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 50)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NeonBoundary/BoundaryWalls/WallSouth"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="WallEast" type="Area3D" parent="NeonBoundary/BoundaryWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 50, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NeonBoundary/BoundaryWalls/WallEast"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="WallWest" type="Area3D" parent="NeonBoundary/BoundaryWalls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="NeonBoundary/BoundaryWalls/WallWest"]
+mesh = SubResource("BoxMesh_wall")
+
+[node name="FallingStars" type="GPUParticles3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, 0)
+amount = 200
+lifetime = 5.0
+emitting = true
+process_material = SubResource("ParticleProcessMaterial_stars")
+draw_pass_1 = SubResource("QuadMesh_star")
+
+[node name="Player" type="Node3D" parent="." groups=["player"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+script = ExtResource("2_player")
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="Player"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player/CharacterBody3D"]
+shape = SubResource("CapsuleShape3D_player")
+
+[node name="MeshContainer" type="Node3D" parent="Player/CharacterBody3D"]
+
+[node name="RobotMesh" type="Node3D" parent="Player/CharacterBody3D/MeshContainer"]
+
+[node name="Body" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+size = Vector3(1.5, 2.5, 1)
+
+[node name="Head" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.8, 0)
+size = Vector3(0.8, 0.8, 0.8)
+
+[node name="ArmL" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0.5, 0)
+size = Vector3(0.4, 1.5, 0.4)
+
+[node name="ArmR" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2, 0.5, 0)
+size = Vector3(0.4, 1.5, 0.4)
+
+[node name="LegL" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -1.5, 0)
+size = Vector3(0.5, 1.5, 0.5)
+
+[node name="LegR" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -1.5, 0)
+size = Vector3(0.5, 1.5, 0.5)
+
+[node name="JetParticles" type="GPUParticles3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh/LegL"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
+amount = 20
+lifetime = 0.5
+emitting = false
+
+[node name="JetParticles2" type="GPUParticles3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh/LegR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
+amount = 20
+lifetime = 0.5
+emitting = false
+
+[node name="MuzzleFlash" type="GPUParticles3D" parent="Player/CharacterBody3D/MeshContainer/RobotMesh/ArmR"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0.5)
+amount = 10
+lifetime = 0.1
+emitting = false
+
+[node name="CarMesh" type="Node3D" parent="Player/CharacterBody3D/MeshContainer"]
+visible = false
+
+[node name="CarBody" type="CSGBox3D" parent="Player/CharacterBody3D/MeshContainer/CarMesh"]
+size = Vector3(2, 0.8, 4)
+
+[node name="CameraPivot" type="Node3D" parent="Player/CharacterBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="Camera" type="Camera3D" parent="Player/CharacterBody3D/CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 5)
+fov = 75
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Player/CharacterBody3D"]
+
+[node name="BossEnemy" type="CharacterBody3D" parent="." groups=["enemies", "boss"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
+script = ExtResource("3_boss")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="BossEnemy"]
+
+[node name="Body" type="CSGBox3D" parent="BossEnemy/MeshInstance3D"]
+size = Vector3(4, 6, 3)
+
+[node name="Head" type="CSGBox3D" parent="BossEnemy/MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+size = Vector3(2, 2, 2)
+
+[node name="ArmL" type="CSGBox3D" parent="BossEnemy/MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 2, 0)
+size = Vector3(1.5, 4, 1.5)
+
+[node name="ArmR" type="CSGBox3D" parent="BossEnemy/MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 0)
+size = Vector3(1.5, 4, 1.5)
+
+[node name="DetectionRange" type="Area3D" parent="BossEnemy"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BossEnemy/DetectionRange"]
+shape = SubResource("SphereShape3D_detection")
+
+[node name="AttackRange" type="Area3D" parent="BossEnemy"]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="BossEnemy/AttackRange"]
+shape = SubResource("SphereShape3D_attack")
+
+[node name="Muzzle" type="Node3D" parent="BossEnemy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 2, 1)
+
+[node name="MinionSpawnPoint" type="Node3D" parent="BossEnemy"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 2)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="MainMenu" type="Control" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="UI/MainMenu"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.0, 0.05, 1)
+
+[node name="TitleLabel" type="Label" parent="UI/MainMenu"]
+offset_left = 400.0
+offset_top = 150.0
+offset_right = 1520.0
+offset_bottom = 300.0
+text = "NEON TRANSFORMER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayButton" type="Button" parent="UI/MainMenu"]
+offset_left = 600.0
+offset_top = 400.0
+offset_right = 1320.0
+offset_bottom = 500.0
+text = "START GAME"
+
+[node name="QuitButton" type="Button" parent="UI/MainMenu"]
+offset_left = 600.0
+offset_top = 550.0
+offset_right = 1320.0
+offset_bottom = 650.0
+text = "QUIT"
+
+[node name="LoadingScreen" type="Control" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="UI/LoadingScreen"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.02, 0.0, 0.05, 1)
+
+[node name="LoadingLabel" type="Label" parent="UI/LoadingScreen"]
+offset_left = 600.0
+offset_top = 450.0
+offset_right = 1320.0
+offset_bottom = 630.0
+text = "LOADING..."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HUD" type="Control" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="HealthLabel" type="Label" parent="UI/HUD"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 300.0
+offset_bottom = 80.0
+text = "HP: 100 / 100"
+
+[node name="FormLabel" type="Label" parent="UI/HUD"]
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 300.0
+offset_bottom = 150.0
+text = "Form: ROBOT"
+
+[node name="BossHealthLabel" type="Label" parent="UI/HUD"]
+offset_left = 1600.0
+offset_top = 20.0
+offset_right = 1900.0
+offset_bottom = 80.0
+text = "BOSS: 500 / 500"
+horizontal_alignment = 2
+
+[node name="GameOverScreen" type="Control" parent="UI"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background" type="ColorRect" parent="UI/GameOverScreen"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.05, 0.0, 0.1, 0.9)
+
+[node name="VictoryLabel" type="Label" parent="UI/GameOverScreen"]
+offset_left = 600.0
+offset_top = 300.0
+offset_right = 1320.0
+offset_bottom = 450.0
+text = "GAME OVER"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RestartButton" type="Button" parent="UI/GameOverScreen"]
+offset_left = 600.0
+offset_top = 500.0
+offset_right = 1320.0
+offset_bottom = 600.0
+text = "TRY AGAIN"
+
+[node name="MenuButton" type="Button" parent="UI/GameOverScreen"]
+offset_left = 600.0
+offset_top = 650.0
+offset_right = 1320.0
+offset_bottom = 750.0
+text = "MAIN MENU"
